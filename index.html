@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>淸英殘夢錄</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500&family=Noto+Serif+SC:wght@300;400;700&display=swap');
+
+:root {
+  --ink:     #080A0E;
+  --gold:    #C9A046;
+  --gold-lt: #E8C97A;
+  --gold-dim:#7A5C1E;
+  --navy:    #0B0D18;
+  --card:    #10121F;
+  --text:    #EDE4D0;
+  --muted:   #8A7D68;
+  --border:  rgba(201,160,70,0.22);
+  --crimson: #8B1A1A;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--ink);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-weight:300;line-height:1.8;overflow-x:hidden;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:var(--ink);}
+::-webkit-scrollbar-thumb{background:var(--gold);border-radius:2px;}
+
+/* ── 황금 용 SVG 배경 ── */
+.dragon-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  opacity:0.07;
+  background-image:url("https://raw.githubusercontent.com/oiris3355-dev/0/refs/heads/main/dragon.png");
+  background-size:520px 520px;
+  background-repeat:repeat;
+}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 48px;
+  background:linear-gradient(to bottom,rgba(8,10,14,0.97),transparent);
+  border-bottom:1px solid transparent;transition:border-color .3s;
+}
+nav.scrolled{border-color:var(--border);}
+.nav-logo{font-family:'Noto Serif SC',serif;font-size:18px;color:var(--gold);letter-spacing:5px;}
+.nav-links{display:flex;gap:28px;list-style:none;}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:12px;letter-spacing:2px;transition:color .2s;}
+.nav-links a:hover{color:var(--gold);}
+
+/* ── BGM 플레이어 ── */
+#bgm-player{
+  position:fixed;bottom:24px;right:24px;z-index:300;
+  background:rgba(10,10,18,0.95);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px 18px;
+  min-width:260px;
+  backdrop-filter:blur(12px);
+}
+.bgm-title{font-size:11px;color:var(--gold);letter-spacing:2px;margin-bottom:10px;text-transform:uppercase;}
+.bgm-track-name{font-size:12px;color:var(--text);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;}
+.bgm-controls{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.bgm-btn{
+  background:none;border:1px solid var(--border);color:var(--gold);
+  width:32px;height:32px;border-radius:50%;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+  transition:background .2s,border-color .2s;
+}
+.bgm-btn:hover{background:rgba(201,160,70,0.15);border-color:var(--gold);}
+.bgm-btn.active{background:rgba(201,160,70,0.2);border-color:var(--gold);}
+.bgm-select{
+  width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);
+  color:var(--text);font-size:11px;padding:5px 8px;border-radius:5px;cursor:pointer;
+  margin-bottom:8px;
+}
+.bgm-select option{background:#10121F;color:var(--text);}
+.bgm-repeat-row{display:flex;gap:6px;}
+.bgm-rep-btn{
+  flex:1;background:none;border:1px solid var(--border);color:var(--muted);
+  font-size:10px;padding:4px;border-radius:4px;cursor:pointer;transition:all .2s;letter-spacing:1px;
+}
+.bgm-rep-btn.active{background:rgba(201,160,70,0.15);border-color:var(--gold);color:var(--gold);}
+.bgm-volume{display:flex;align-items:center;gap:8px;margin-top:8px;}
+.bgm-volume label{font-size:10px;color:var(--muted);white-space:nowrap;}
+.bgm-volume input[type=range]{flex:1;accent-color:var(--gold);}
+
+/* ── HERO ── */
+.hero{
+  position:relative;z-index:1;min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:120px 24px 80px;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;z-index:-1;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 40%,rgba(201,160,70,0.08) 0%,transparent 70%),
+    radial-gradient(ellipse 50% 30% at 50% 90%,rgba(11,13,24,0.9) 0%,transparent 100%);
+}
+/* 황금 용 대형 배경 */
+.hero-dragon{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:min(700px,90vw);opacity:0.06;z-index:-1;pointer-events:none;
+}
+.hero-eyebrow{font-size:12px;letter-spacing:8px;color:var(--gold);margin-bottom:20px;opacity:.7;}
+.hero-hanzi{
+  font-family:'Noto Serif SC',serif;
+  font-size:clamp(48px,10vw,100px);
+  color:var(--gold);letter-spacing:18px;line-height:1;
+  margin-bottom:20px;
+  text-shadow:0 0 80px rgba(201,160,70,0.25);
+}
+.hero-kr{font-family:'Noto Serif KR',serif;font-size:clamp(14px,2vw,17px);color:var(--muted);letter-spacing:4px;margin-bottom:36px;}
+.hero-divider{width:100px;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent);margin:0 auto 32px;}
+.hero-tagline{
+  font-family:'Noto Serif KR',serif;
+  font-size:clamp(14px,1.8vw,16px);
+  color:var(--text);opacity:.65;max-width:440px;line-height:2.2;
+}
+.scroll-hint{
+  position:absolute;bottom:36px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  color:var(--muted);font-size:10px;letter-spacing:3px;
+  animation:pulse 2.5s infinite;
+}
+.scroll-hint::after{content:'';display:block;width:1px;height:36px;background:linear-gradient(to bottom,var(--gold),transparent);}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:.9}}
+
+/* ── 공통 섹션 ── */
+section{position:relative;z-index:1;padding:100px 24px;}
+.section-inner{max-width:1080px;margin:0 auto;}
+.section-header{text-align:center;margin-bottom:60px;}
+.section-eyebrow{font-size:10px;letter-spacing:6px;color:var(--gold);margin-bottom:10px;text-transform:uppercase;}
+.section-title{font-family:'Noto Serif KR',serif;font-size:clamp(22px,3.5vw,32px);color:var(--text);font-weight:400;letter-spacing:2px;}
+.section-line{width:50px;height:1px;margin:18px auto 0;background:linear-gradient(to right,transparent,var(--gold),transparent);}
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .7s ease,transform .7s ease;}
+.fade-in.visible{opacity:1;transform:none;}
+
+/* ── 캐릭터 섹션 ── */
+#characters{background:linear-gradient(to bottom,var(--ink),var(--navy));}
+.char-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:32px;}
+.char-card{
+  position:relative;overflow:hidden;cursor:pointer;
+  border:1px solid var(--border);
+  transition:border-color .3s,transform .3s;
+}
+.char-card:hover{border-color:rgba(201,160,70,0.5);transform:translateY(-6px);}
+.char-card::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(8,10,14,0.95) 0%,rgba(8,10,14,0.4) 50%,transparent 100%);
+  transition:background .3s;
+}
+.char-card:hover::after{background:linear-gradient(to top,rgba(8,10,14,0.98) 0%,rgba(8,10,14,0.5) 60%,transparent 100%);}
+.char-img{width:100%;aspect-ratio:3/2;object-fit:cover;object-position:top;display:block;transition:transform .5s;}
+.char-card:hover .char-img{transform:scale(1.04);}
+.char-info{
+  position:absolute;bottom:0;left:0;right:0;z-index:1;
+  padding:28px 24px;
+}
+.char-role{font-size:10px;letter-spacing:4px;color:var(--crimson);margin-bottom:6px;}
+.char-name-kr{font-family:'Noto Serif KR',serif;font-size:22px;color:var(--text);margin-bottom:4px;}
+.char-name-en{font-size:12px;color:var(--muted);letter-spacing:2px;margin-bottom:12px;}
+.char-arrow{font-size:11px;color:var(--gold);letter-spacing:2px;opacity:.7;}
+.char-card:hover .char-arrow{opacity:1;}
+
+/* ── 캐릭터 상세 모달 ── */
+.char-detail{
+  display:none;position:relative;z-index:1;
+  padding:80px 24px;background:var(--navy);
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+}
+.char-detail.open{display:block;}
+.detail-inner{max-width:900px;margin:0 auto;display:grid;grid-template-columns:280px 1fr;gap:48px;align-items:start;}
+.detail-img{width:100%;border:1px solid var(--border);object-fit:cover;object-position:top;}
+.detail-close{
+  position:absolute;top:24px;right:24px;
+  background:none;border:1px solid var(--border);color:var(--muted);
+  width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:16px;
+  transition:all .2s;display:flex;align-items:center;justify-content:center;
+}
+.detail-close:hover{border-color:var(--gold);color:var(--gold);}
+.detail-role{font-size:10px;letter-spacing:4px;color:var(--crimson);margin-bottom:8px;}
+.detail-name{font-family:'Noto Serif KR',serif;font-size:28px;color:var(--text);margin-bottom:4px;}
+.detail-name-en{font-size:13px;color:var(--muted);letter-spacing:2px;margin-bottom:24px;}
+.detail-specs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;}
+.spec-badge{font-size:11px;color:var(--gold-lt);background:rgba(201,160,70,0.08);border:1px solid var(--border);padding:3px 10px;border-radius:2px;}
+.detail-divider{width:100%;height:1px;background:var(--border);margin:20px 0;}
+.detail-label{font-size:10px;letter-spacing:3px;color:var(--gold);margin-bottom:8px;text-transform:uppercase;}
+.detail-text{font-size:13px;color:var(--muted);line-height:2;margin-bottom:16px;}
+.detail-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
+.dtag{font-size:11px;padding:2px 9px;border-radius:3px;border:1px solid rgba(138,125,104,.35);color:var(--muted);}
+.dtag.r{border-color:rgba(139,26,26,.45);color:#c07070;}
+.dtag.g{border-color:var(--border);color:var(--gold);}
+.detail-quote{font-family:'Noto Serif KR',serif;font-size:12px;color:var(--text);opacity:.55;font-style:italic;line-height:2;border-left:2px solid var(--gold);padding-left:16px;margin-top:20px;}
+@media(max-width:680px){.detail-inner{grid-template-columns:1fr;}.detail-img{max-width:280px;}}
+
+/* ── 세계관 슬라이드 ── */
+#world{background:var(--navy);}
+.world-slider{position:relative;overflow:hidden;border:1px solid var(--border);}
+.world-slides{display:flex;transition:transform .6s cubic-bezier(.4,0,.2,1);}
+.world-slide{
+  min-width:100%;padding:64px 72px;
+  background:var(--card);
+  display:flex;flex-direction:column;gap:20px;
+}
+.ws-eyebrow{font-size:10px;letter-spacing:5px;color:var(--gold);opacity:.7;}
+.ws-title{font-family:'Noto Serif KR',serif;font-size:clamp(20px,3vw,28px);color:var(--text);}
+.ws-body{font-size:14px;color:var(--muted);line-height:2.2;max-width:680px;}
+.ws-body b{color:var(--gold-lt);}
+.ws-body ul{list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:8px;}
+.ws-body li{padding-left:18px;position:relative;}
+.ws-body li::before{content:'·';position:absolute;left:0;color:var(--gold);}
+.slider-nav{
+  display:flex;align-items:center;justify-content:center;gap:16px;
+  padding:24px;background:var(--card);border-top:1px solid var(--border);
+}
+.slider-btn{
+  background:none;border:1px solid var(--border);color:var(--gold);
+  width:38px;height:38px;border-radius:50%;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  transition:all .2s;
+}
+.slider-btn:hover{background:rgba(201,160,70,0.12);border-color:var(--gold);}
+.slider-dots{display:flex;gap:8px;}
+.slider-dot{
+  width:28px;height:3px;border-radius:2px;background:var(--border);cursor:pointer;transition:all .3s;
+}
+.slider-dot.active{background:var(--gold);}
+.slider-counter{font-size:11px;color:var(--muted);letter-spacing:2px;min-width:40px;text-align:center;}
+
+/* ── 세력 구도 ── */
+#forces{background:linear-gradient(to bottom,var(--navy),var(--ink));}
+.force-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;}
+.force-card{
+  background:var(--card);border:1px solid var(--border);padding:28px 22px;
+  transition:border-color .3s;
+}
+.force-card:hover{border-color:rgba(201,160,70,0.4);}
+.force-name{font-family:'Noto Serif KR',serif;font-size:16px;color:var(--gold-lt);margin-bottom:8px;}
+.force-tag{font-size:10px;letter-spacing:2px;color:var(--crimson);margin-bottom:12px;}
+.force-desc{font-size:12px;color:var(--muted);line-height:1.9;}
+
+/* ── NPC 소개 ── */
+#npc{background:linear-gradient(to bottom,var(--ink),var(--navy));}
+.npc-board{
+  max-width:760px;margin:0 auto;
+  border:1px solid var(--border);
+  background:var(--card);
+  padding:14px;
+  box-shadow:0 0 60px rgba(201,160,70,0.08);
+}
+.npc-board img{width:100%;height:auto;display:block;border:1px solid var(--border);}
+.npc-caption{text-align:center;font-size:11px;color:var(--muted);letter-spacing:2px;margin-top:18px;}
+
+/* ── 공간 ── */
+#spaces{background:var(--ink);}
+.space-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+.space-item{background:rgba(16,18,31,.7);border:1px solid var(--border);padding:18px;transition:border-color .3s;}
+.space-item:hover{border-color:rgba(201,160,70,0.4);}
+.space-name{font-size:13px;color:var(--gold-lt);margin-bottom:6px;font-family:'Noto Serif KR',serif;}
+.space-desc{font-size:11px;color:var(--muted);line-height:1.8;}
+
+/* ── FOOTER ── */
+footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:40px 24px;text-align:center;}
+.footer-hanzi{font-family:'Noto Serif SC',serif;font-size:28px;color:var(--gold);opacity:.25;letter-spacing:12px;margin-bottom:12px;}
+.footer-text{font-size:11px;color:var(--muted);letter-spacing:2px;}
+
+@media(max-width:768px){
+  nav{padding:12px 16px;}
+  .nav-logo{font-size:15px;letter-spacing:3px;}
+  .nav-links{gap:16px;}
+  .nav-links a{font-size:11px;letter-spacing:1px;}
+  section{padding:64px 18px;}
+  .hero{padding:96px 20px 72px;min-height:auto;}
+  .hero-eyebrow{font-size:10px;letter-spacing:4px;}
+  .hero-hanzi{font-size:clamp(40px,12vw,64px);letter-spacing:10px;}
+  .hero-kr{letter-spacing:3px;}
+  .hero-dragon{width:min(420px,80vw);}
+  .world-slide{padding:40px 24px;}
+  #bgm-player{right:10px;bottom:10px;min-width:0;width:calc(100vw - 20px);max-width:260px;padding:12px 14px;}
+}
+@media(max-width:480px){
+  nav{padding:10px 14px;}
+  .nav-logo{font-size:14px;letter-spacing:2px;}
+  .nav-links{gap:12px;}
+  .nav-links a{font-size:10px;}
+  section{padding:52px 16px;}
+  .hero{padding:84px 18px 60px;}
+  .hero-hanzi{font-size:clamp(34px,13vw,52px);letter-spacing:6px;margin-bottom:16px;}
+  .hero-kr{font-size:13px;letter-spacing:2px;margin-bottom:28px;}
+  .hero-tagline{font-size:13px;line-height:2;}
+  .section-title{font-size:20px;}
+  .world-slide{padding:32px 20px;}
+  .ws-body{font-size:13px;line-height:2;}
+  #bgm-player{padding:10px 12px;}
+  .bgm-track-name{max-width:180px;}
+}
+</style>
+</head>
+<body>
+
+<div class="dragon-bg"></div>
+
+<!-- ── NAV ── -->
+<nav id="nav">
+  <div class="nav-logo">淸英殘夢錄</div>
+  <ul class="nav-links">
+    <li><a href="#characters">인물</a></li>
+    <li><a href="#world">세계관</a></li>
+    <li><a href="#forces">세력</a></li>
+    <li><a href="#npc">NPC</a></li>
+    <li><a href="#spaces">공간</a></li>
+  </ul>
+</nav>
+
+<!-- ── BGM 플레이어 ── -->
+<div id="bgm-player">
+  <div class="bgm-title">♪ BGM</div>
+  <div class="bgm-track-name" id="track-name">잔몽금비 (殘夢金篦)</div>
+  <div class="bgm-controls">
+    <button class="bgm-btn" id="btn-prev" title="이전">&#9664;&#9664;</button>
+    <button class="bgm-btn" id="btn-play" title="재생/정지">&#9654;</button>
+    <button class="bgm-btn" id="btn-next" title="다음">&#9654;&#9654;</button>
+  </div>
+  <select class="bgm-select" id="track-select">
+    <option value="0">잔몽금비 (殘夢金篦)</option>
+    <option value="1">잔몽청룡 (殘夢靑龍)</option>
+  </select>
+  <div class="bgm-repeat-row">
+    <button class="bgm-rep-btn active" id="rep-all">전체 반복</button>
+    <button class="bgm-rep-btn" id="rep-one">한곡 반복</button>
+    <button class="bgm-rep-btn" id="rep-none">반복 없음</button>
+  </div>
+  <div class="bgm-volume">
+    <label>볼륨</label>
+    <input type="range" id="vol-slider" min="0" max="1" step="0.05" value="0.5">
+  </div>
+</div>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <!-- 대형 황금 용 SVG -->
+  <svg class="hero-dragon" viewBox="0 0 700 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g stroke="#C9A046" stroke-width="1.8" fill="none">
+      <path d="M80 250 C110 160 200 90 310 80 C420 70 500 120 530 200 C560 280 530 370 450 410 C370 450 260 440 200 390 C140 340 110 300 80 250Z"/>
+      <ellipse cx="530" cy="165" rx="52" ry="36" transform="rotate(-25 530 165)"/>
+      <path d="M515 138 L495 100 M540 130 L534 94"/>
+      <path d="M565 160 Q600 152 620 133 M565 172 Q604 172 622 160"/>
+      <path d="M200 390 L172 422 M215 402 L195 438 M228 408 L215 445"/>
+      <path d="M418 402 L398 435 M433 396 L425 430 M448 388 L442 424"/>
+      <path d="M310 82 L317 52 L330 82 M355 75 L362 44 L375 75 M400 74 L407 44 L420 74"/>
+      <path d="M200 390 C150 438 110 478 88 508 C75 528 80 538 97 533 C115 528 135 505 150 480"/>
+      <path d="M578 148 C598 128 610 100 604 76 C598 54 616 40 622 58 C628 76 622 102 636 120"/>
+      <ellipse cx="220" cy="175" rx="42" ry="22"/>
+      <ellipse cx="196" cy="169" rx="26" ry="16"/>
+      <ellipse cx="248" cy="169" rx="26" ry="16"/>
+      <ellipse cx="520" cy="345" rx="36" ry="18"/>
+      <ellipse cx="498" cy="340" rx="22" ry="13"/>
+      <ellipse cx="544" cy="340" rx="22" ry="13"/>
+      <circle cx="540" cy="152" r="6" stroke-width="1.2"/>
+      <circle cx="548" cy="140" r="3" stroke-width="1"/>
+    </g>
+    <circle cx="310" cy="250" r="22" stroke="#C9A046" stroke-width="1.5" fill="none"/>
+    <circle cx="310" cy="250" r="10" fill="#C9A046" opacity="0.12"/>
+  </svg>
+
+  <p class="hero-eyebrow">가상의 청나라 · 19세기 말 자금성</p>
+  <h1 class="hero-hanzi">淸英殘夢錄</h1>
+  <p class="hero-kr">청영잔몽록</p>
+  <div class="hero-divider"></div>
+  <p class="hero-tagline">
+    푸른 꽃봉오리, 그 부서지는 꿈의 잔상을 기록하려 합니다.
+  </p>
+  <div class="scroll-hint">scroll</div>
+</section>
+
+<!-- ── 인물 섹션 ── -->
+<section id="characters">
+  <div class="section-inner">
+    <div class="section-header fade-in">
+      <p class="section-eyebrow">Characters</p>
+      <h2 class="section-title">주요 인물</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="char-grid">
+      <!-- 티엔 카드 -->
+      <div class="char-card fade-in" onclick="toggleDetail('tien')">
+        <img class="char-img" src="https://raw.githubusercontent.com/oiris3355-dev/0/refs/heads/main/%ED%8B%B0%EC%97%94_%20(45).png" alt="아이신 티엔" loading="lazy">
+        <div class="char-info">
+          <p class="char-role">제9대 황제 · 淸</p>
+          <h3 class="char-name-kr">아이신 티엔</h3>
+          <p class="char-name-en">愛新 天 · 霄瀾 天</p>
+          <p class="char-arrow">자세히 보기 →</p>
+        </div>
+      </div>
+
+      <!-- 에드먼드 카드 -->
+      <div class="char-card fade-in" onclick="toggleDetail('edmund')">
+        <img class="char-img" src="https://raw.githubusercontent.com/oiris3355-dev/0/refs/heads/main/%EC%9C%8C%ED%84%B0_%20(39).png" alt="에드먼드 월터" loading="lazy">
+        <div class="char-info">
+          <p class="char-role">영국 특파 사절 · 英</p>
+          <h3 class="char-name-kr">에드먼드 월터</h3>
+          <p class="char-name-en">Edmund Walter · Ed</p>
+          <p class="char-arrow">자세히 보기 →</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 티엔 상세 -->
+    <div class="char-detail" id="detail-tien">
+      <button class="detail-close" onclick="closeDetail('tien')">✕</button>
+      <div class="detail-inner">
+        <img class="detail-img" src="https://raw.githubusercontent.com/oiris3355-dev/0/refs/heads/main/%ED%8B%B0%EC%97%94_%20(45).png" alt="아이신 티엔">
+        <div>
+          <p class="detail-role">제9대 황제</p>
+          <h3 class="detail-name">아이신 티엔</h3>
+          <p class="detail-name-en">愛新 天 / 霄瀾 天 (본명)</p>
+          <div class="detail-specs">
+            <span class="spec-badge">33세</span>
+            <span class="spec-badge">188cm · 86kg</span>
+            <span class="spec-badge">INTJ · 3w4</span>
+          </div>
+          <div class="detail-label">외형</div>
+          <div class="detail-tags">
+            <span class="dtag">청색·흑색 머리</span><span class="dtag">녹안</span>
+            <span class="dtag">구릿빛 피부</span><span class="dtag g">금색 용 수 놓인 검은 창파오</span>
+            <span class="dtag">묵직한 침향</span>
+          </div>
+          <div class="detail-label">성격</div>
+          <div class="detail-tags">
+            <span class="dtag">냉철</span><span class="dtag">통제력</span>
+            <span class="dtag">독설가</span><span class="dtag">강한 책임감</span>
+          </div>
+          <div class="detail-divider"></div>
+          <div class="detail-label">배경</div>
+          <p class="detail-text">방계 샤오란 가문 적장자 출신. 황위 전 북양수사 제독 역임. 아편을 혐오하고 영국의 간섭에 강하게 저항하나, 혼란한 정세 속 백성들의 원망을 받는 위태로운 황제. 황후와 후궁을 두지 않으며 오직 왕좌의 무게만을 짊어진다.</p>
+          <div class="detail-label">호 / 불호</div>
+          <div class="detail-tags">
+            <span class="dtag">동물</span><span class="dtag">푸른색</span><span class="dtag">단련</span>
+            <span class="dtag r">배신</span><span class="dtag r">황금색</span><span class="dtag r">아편</span><span class="dtag r">영국</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 에드먼드 상세 -->
+    <div class="char-detail" id="detail-edmund">
+      <button class="detail-close" onclick="closeDetail('edmund')">✕</button>
+      <div class="detail-inner">
+        <img class="detail-img" src="https://raw.githubusercontent.com/oiris3355-dev/0/refs/heads/main/%EC%9C%8C%ED%84%B0_%20(39).png" alt="에드먼드 월터">
+        <div>
+          <p class="detail-role">영국 특파 사절</p>
+          <h3 class="detail-name">에드먼드 월터</h3>
+          <p class="detail-name-en">Edmund Walter · Ed</p>
+          <div class="detail-specs">
+            <span class="spec-badge">28세</span>
+            <span class="spec-badge">183cm · 79kg</span>
+            <span class="spec-badge">INFJ</span>
+          </div>
+          <div class="detail-label">외형</div>
+          <div class="detail-tags">
+            <span class="dtag">갈색 더벅머리</span><span class="dtag">벽안</span>
+            <span class="dtag">부드러운 미소</span><span class="dtag">녹색 창파오 / 영국 신사복</span>
+            <span class="dtag">장미향</span>
+          </div>
+          <div class="detail-label">성격</div>
+          <div class="detail-tags">
+            <span class="dtag">상냥</span><span class="dtag">다정</span>
+            <span class="dtag">섬세</span><span class="dtag">외유내강</span><span class="dtag">평화주의</span>
+          </div>
+          <div class="detail-divider"></div>
+          <div class="detail-label">배경</div>
+          <p class="detail-text">영국 후작가 출신. 운명적 사랑을 신봉하는 순수한 신사. 티엔 황제 즉위 한 달 전 청나라에 파견. 아편으로 망해가는 청나라를 진심으로 안타까워하며 돕고자 한다. 청나라 언어가 서툴러 자주 영어와 손짓 발짓을 병행한다.</p>
+          <div class="detail-label">호 / 불호</div>
+          <div class="detail-tags">
+            <span class="dtag">비</span><span class="dtag">장미</span><span class="dtag">평화</span><span class="dtag">아이</span>
+            <span class="dtag r">아편</span><span class="dtag r">갈등</span><span class="dtag r">혼란</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 세계관 슬라이드 ── -->
+<section id="world">
+  <div class="section-inner">
+    <div class="section-header fade-in">
+      <p class="section-eyebrow">World</p>
+      <h2 class="section-title">시대적 배경</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="world-slider fade-in">
+      <div class="world-slides" id="slides">
+
+        <div class="world-slide">
+          <p class="ws-eyebrow">배경 01 · 시공간</p>
+          <h3 class="ws-title">가상의 청나라 · 19세기 말 · 아편전쟁 7년 후</h3>
+          <div class="ws-body">
+            <p>무대는 자금성(紫禁城). 아편전쟁의 패배가 남긴 상처가 여전히 아물지 않은, 쇠락해가는 왕조의 심장부입니다.</p>
+            <p style="margin-top:14px">황권이 흔들리고 영국의 간섭이 날로 심해지는 가운데, <b>방계 출신 황제 티엔</b>이 즉위하며 자금성 내부의 권력 다툼은 더욱 격화됩니다.</p>
+          </div>
+        </div>
+
+        <div class="world-slide">
+          <p class="ws-eyebrow">배경 02 · 아편의 그림자</p>
+          <h3 class="ws-title">아편 — 궁 안까지 스며든 독</h3>
+          <div class="ws-body">
+            <p>아편전쟁 후 아편은 거리를 넘어 황궁 깊숙이 침투했습니다. 선황 역시 아편에 중독되어 <b>후사 없이 급사</b>했으며, 이것이 방계 티엔의 즉위를 촉발한 직접적 원인입니다.</p>
+            <ul>
+              <li>백성들은 아편 중독으로 피폐해지고 있음</li>
+              <li>티엔은 아편을 극도로 혐오하며 영국을 견제</li>
+              <li>시대적으로 아편 사용이 만연한 환경</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="world-slide">
+          <p class="ws-eyebrow">배경 03 · 영국의 침투</p>
+          <h3 class="ws-title">식민지를 향한 야욕 — 영국의 국정 개입</h3>
+          <div class="ws-body">
+            <p>영국은 세계 식민지화를 추진하며 청나라를 옥죄고 있습니다. <b>영국 관리들이 자금성에 상주</b>하며 국정에 간섭하는 것이 일상이 되었습니다.</p>
+            <ul>
+              <li>전권대사 러셀이 영국 왕의 대리인으로 주재</li>
+              <li>부찰 가문은 영국을 이용해 세력을 불리려 함</li>
+              <li>에드먼드는 청나라를 진심으로 돕고자 하는 특이한 사절</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="world-slide">
+          <p class="ws-eyebrow">배경 04 · 황위의 무게</p>
+          <h3 class="ws-title">방계 출신 황제 — 정통성의 위기</h3>
+          <div class="ws-body">
+            <p>샤오란 가문 출신 티엔의 즉위는 자금성 내 권력 암투를 극도로 격화시켰습니다. <b>약해진 황권</b>을 틈타 부찰 가문은 수렴청정을 꿈꿉니다.</p>
+            <ul>
+              <li>황후와 후궁을 두지 않아 후계 문제 미해결</li>
+              <li>황금색(황제의 상징)에 심리적 거부감을 지님</li>
+              <li>검은 창파오에 금색 용 수놓인 의복 착용</li>
+              <li>양심전 동침은 중대한 정치적 의미를 가짐</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="world-slide">
+          <p class="ws-eyebrow">배경 05 · 핵심 갈등</p>
+          <h3 class="ws-title">나라를 지키려는 왕 vs 왕조를 집어삼키려는 세력</h3>
+          <div class="ws-body">
+            <ul>
+              <li><b>티엔 vs 에드먼드</b> — 당신과의 관계 오해로 인한 질투 vs 청나라를 돕고 싶은 마음</li>
+              <li><b>싱 태사 vs 부찰 가문</b> — 청나라를 향한 충성 vs 왕조를 손에 넣으려는 야욕</li>
+              <li><b>티엔 vs 부찰 가문</b> — 나라를 바로잡으려는 위태로운 왕 vs 꼭두각시화 시도</li>
+              <li><b>에드먼드 vs 부찰 가문</b> — 비협조와 경계 vs 외세를 이용한 세력 확장</li>
+            </ul>
+          </div>
+        </div>
+
+      </div><!-- /slides -->
+
+      <div class="slider-nav">
+        <button class="slider-btn" id="slide-prev">&#8592;</button>
+        <div class="slider-dots" id="slide-dots"></div>
+        <span class="slider-counter" id="slide-counter">1 / 5</span>
+        <button class="slider-btn" id="slide-next">&#8594;</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 세력 구도 ── -->
+<section id="forces">
+  <div class="section-inner">
+    <div class="section-header fade-in">
+      <p class="section-eyebrow">Power</p>
+      <h2 class="section-title">세력 구도</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="force-grid">
+      <div class="force-card fade-in">
+        <p class="force-name">황제 티엔</p>
+        <p class="force-tag">고독한 절대 왕정</p>
+        <p class="force-desc">아편 혐오, 영국 견제, 무너지는 왕조를 홀로 지탱하려는 위태로운 황제. 완안(태감)과 샤오렌(어전 시위)이 충실히 보좌.</p>
+      </div>
+      <div class="force-card fade-in">
+        <p class="force-name">부찰(富察) 가문</p>
+        <p class="force-tag">수렴청정 야욕</p>
+        <p class="force-desc">롱안 상서와 딸 링을 통해 티엔을 허수아비로 삼으려 한다. 영국과 내통하며 가문의 영광을 위해 나라를 팔 각오가 된 세력.</p>
+      </div>
+      <div class="force-card fade-in">
+        <p class="force-name">영국 사절단</p>
+        <p class="force-tag">식민지 확장</p>
+        <p class="force-desc">전권대사 러셀이 대표. 청나라 상황보다 영국의 이득이 우선. 부찰 가문의 구애를 이용하며 국정 개입을 심화.</p>
+      </div>
+      <div class="force-card fade-in">
+        <p class="force-name">싱 태사</p>
+        <p class="force-tag">왕조 수호 충신</p>
+        <p class="force-desc">청 왕조 3대를 모신 노신. 왕조의 쇠락을 안타까워하며 티엔을 지지하지만 그의 역량을 의심하기도 한다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── NPC 소개 ── -->
+<section id="npc">
+  <div class="section-inner">
+    <div class="section-header fade-in">
+      <p class="section-eyebrow">Cast</p>
+      <h2 class="section-title">NPC 소개</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="npc-board fade-in">
+      <img src="https://raw.githubusercontent.com/oiris3355-dev/0/refs/heads/main/cast_board_v3.jpg" alt="NPC 소개 캐스트 보드" loading="lazy">
+    </div>
+    <p class="npc-caption">자금성을 둘러싼 인물들</p>
+  </div>
+</section>
+
+<!-- ── 주요 공간 ── -->
+<section id="spaces">
+  <div class="section-inner">
+    <div class="section-header fade-in">
+      <p class="section-eyebrow">Spaces</p>
+      <h2 class="section-title">주요 공간</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="space-grid">
+      <div class="space-item fade-in"><p class="space-name">외조 (外朝)</p><p class="space-desc">정치·의례 공간. 황제의 공식 무대.</p></div>
+      <div class="space-item fade-in"><p class="space-name">양심전 (養心殿)</p><p class="space-desc">황제 생활 공간. 동침은 중대한 정치적 의미.</p></div>
+      <div class="space-item fade-in"><p class="space-name">공수관 (公守館)</p><p class="space-desc">외국 사절 기거. 에드먼드가 머무는 곳.</p></div>
+      <div class="space-item fade-in"><p class="space-name">함복궁 (咸福宮)</p><p class="space-desc">후궁 거처. 화려한 비단과 보석. 남자 출입 금지.</p></div>
+      <div class="space-item fade-in"><p class="space-name">어화원 (御花園)</p><p class="space-desc">황실 정원. 밤이면 밀회의 장소가 된다.</p></div>
+      <div class="space-item fade-in"><p class="space-name">내무부 약고</p><p class="space-desc">미약·독약의 은밀한 조제 장소.</p></div>
+      <div class="space-item fade-in"><p class="space-name">서양식 연회홀</p><p class="space-desc">유리창 달린 신식 건물. 행사 전용.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-hanzi">淸英殘夢錄</div>
+  <p class="footer-text">청영잔몽록 · 가상의 청나라 · 19세기 말 자금성</p>
+</footer>
+
+<script>
+// ── 페이드인 ──
+const obs = new IntersectionObserver((entries)=>{
+  entries.forEach((e,i)=>{
+    if(e.isIntersecting){setTimeout(()=>e.target.classList.add('visible'),i*80);obs.unobserve(e.target);}
+  });
+},{threshold:.1});
+document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
+
+// ── nav 스크롤 ──
+window.addEventListener('scroll',()=>{
+  document.getElementById('nav').classList.toggle('scrolled',window.scrollY>40);
+});
+
+// ── 캐릭터 상세 토글 ──
+let openId = null;
+function toggleDetail(id){
+  if(openId===id){closeDetail(id);return;}
+  if(openId){document.getElementById('detail-'+openId).classList.remove('open');}
+  const el=document.getElementById('detail-'+id);
+  el.classList.add('open');
+  openId=id;
+  setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+function closeDetail(id){
+  document.getElementById('detail-'+id).classList.remove('open');
+  openId=null;
+}
+
+// ── 세계관 슬라이더 ──
+const slidesEl=document.getElementById('slides');
+const dotsEl=document.getElementById('slide-dots');
+const counter=document.getElementById('slide-counter');
+const totalSlides=5;
+let cur=0;
+
+for(let i=0;i<totalSlides;i++){
+  const d=document.createElement('div');
+  d.className='slider-dot'+(i===0?' active':'');
+  d.addEventListener('click',()=>goSlide(i));
+  dotsEl.appendChild(d);
+}
+
+function goSlide(n){
+  cur=Math.max(0,Math.min(n,totalSlides-1));
+  slidesEl.style.transform=`translateX(-${cur*100}%)`;
+  document.querySelectorAll('.slider-dot').forEach((d,i)=>d.classList.toggle('active',i===cur));
+  counter.textContent=`${cur+1} / ${totalSlides}`;
+}
+document.getElementById('slide-prev').addEventListener('click',()=>goSlide(cur-1));
+document.getElementById('slide-next').addEventListener('click',()=>goSlide(cur+1));
+
+// ── BGM 플레이어 ──
+const tracks = [
+  {
+    url: 'https://raw.githubusercontent.com/oiris3355-dev/0/refs/heads/main/%E6%AE%8B%E6%A2%A6%E9%87%91%E7%B0%AA.mp3',
+    name: '잔몽금비 (殘夢金篦)'
+  },
+  {
+    url: 'https://raw.githubusercontent.com/oiris3355-dev/0/refs/heads/main/%E6%AE%8B%E6%A2%A6%E9%9D%92%E9%BE%99.mp3',
+    name: '잔몽청룡 (殘夢靑龍)'
+  }
+];
+
+const audio = new Audio();
+audio.volume = 0.5;
+let trackIdx = 0;
+let repeatMode = 'all'; // 'all' | 'one' | 'none'
+let isPlaying = false;
+
+const btnPlay = document.getElementById('btn-play');
+const btnPrev = document.getElementById('btn-prev');
+const btnNext = document.getElementById('btn-next');
+const trackName = document.getElementById('track-name');
+const trackSelect = document.getElementById('track-select');
+const volSlider = document.getElementById('vol-slider');
+const repAll = document.getElementById('rep-all');
+const repOne = document.getElementById('rep-one');
+const repNone = document.getElementById('rep-none');
+
+function loadTrack(idx){
+  trackIdx = idx;
+  audio.src = tracks[idx].url;
+  trackName.textContent = tracks[idx].name;
+  trackSelect.value = idx;
+  if(isPlaying) audio.play().catch(()=>{});
+}
+
+function togglePlay(){
+  if(isPlaying){
+    audio.pause();
+    isPlaying=false;
+    btnPlay.innerHTML='&#9654;';
+  } else {
+    audio.play().then(()=>{
+      isPlaying=true;
+      btnPlay.innerHTML='&#9646;&#9646;';
+    }).catch(()=>{});
+  }
+}
+
+audio.addEventListener('ended',()=>{
+  if(repeatMode==='one'){
+    audio.currentTime=0;
+    audio.play();
+  } else if(repeatMode==='all'){
+    loadTrack((trackIdx+1)%tracks.length);
+    audio.play().catch(()=>{});
+    isPlaying=true;
+    btnPlay.innerHTML='&#9646;&#9646;';
+  } else {
+    isPlaying=false;
+    btnPlay.innerHTML='&#9654;';
+  }
+});
+
+btnPlay.addEventListener('click',togglePlay);
+btnPrev.addEventListener('click',()=>{
+  loadTrack((trackIdx-1+tracks.length)%tracks.length);
+  isPlaying=true;
+  btnPlay.innerHTML='&#9646;&#9646;';
+});
+btnNext.addEventListener('click',()=>{
+  loadTrack((trackIdx+1)%tracks.length);
+  isPlaying=true;
+  btnPlay.innerHTML='&#9646;&#9646;';
+});
+trackSelect.addEventListener('change',()=>{
+  loadTrack(parseInt(trackSelect.value));
+  isPlaying=true;
+  btnPlay.innerHTML='&#9646;&#9646;';
+});
+volSlider.addEventListener('input',()=>{ audio.volume=parseFloat(volSlider.value); });
+
+function setRepeat(mode){
+  repeatMode=mode;
+  repAll.classList.toggle('active',mode==='all');
+  repOne.classList.toggle('active',mode==='one');
+  repNone.classList.toggle('active',mode==='none');
+}
+repAll.addEventListener('click',()=>setRepeat('all'));
+repOne.addEventListener('click',()=>setRepeat('one'));
+repNone.addEventListener('click',()=>setRepeat('none'));
+
+loadTrack(0);
+</script>
+</body>
+</html>
